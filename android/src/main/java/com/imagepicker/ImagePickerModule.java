@@ -565,17 +565,27 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
                                    @NonNull final Callback callback,
                                    @NonNull final int requestCode)
   {
-    final int writePermission = ActivityCompat
+    boolean permissionsGrated = false;
+    if (requestCode == REQUEST_PERMISSIONS_FOR_LIBRARY) {
+      final int writePermission = ActivityCompat
             .checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-    final int cameraPermission = ActivityCompat
+      permissionsGrated = writePermission == PackageManager.PERMISSION_GRANTED;
+    } else {
+      final int writePermission = ActivityCompat
+            .checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+      final int cameraPermission = ActivityCompat
             .checkSelfPermission(activity, Manifest.permission.CAMERA);
-
-    final boolean permissionsGrated = writePermission == PackageManager.PERMISSION_GRANTED &&
+      permissionsGrated = writePermission == PackageManager.PERMISSION_GRANTED &&
             cameraPermission == PackageManager.PERMISSION_GRANTED;
+    }
+
+ 
 
     if (!permissionsGrated)
     {
-      final Boolean dontAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) && ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA);
+      final Boolean dontAskAgain = requestCode == REQUEST_PERMISSIONS_FOR_LIBRARY ? ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) : ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) && ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA);
+
+ 
 
       if (dontAskAgain)
       {
@@ -593,6 +603,8 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
                     }
                     module.doOnCancel();
                   }
+
+ 
 
                   @Override
                   public void onReTry(WeakReference<ImagePickerModule> moduleInstance,
@@ -621,7 +633,10 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       }
       else
       {
-        String[] PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+        String[] PERMISSIONS = requestCode == REQUEST_PERMISSIONS_FOR_LIBRARY ? new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE} : new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
+
+ 
+
         if (activity instanceof ReactActivity)
         {
           ((ReactActivity) activity).requestPermissions(PERMISSIONS, requestCode, listener);
@@ -649,6 +664,8 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
     }
     return true;
   }
+
+
 
   private boolean isCameraAvailable() {
     return reactContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)
