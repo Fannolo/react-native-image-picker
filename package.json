@@ -97,8 +97,7 @@
           "flow": true
         }
       ],
-      "module",
-      "typescript"
+      "module"
     ]
   },
   "husky": {
